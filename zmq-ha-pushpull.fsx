@@ -34,17 +34,17 @@ let receive identity ports =
         handle ()
     handle ()
 
-let send thinktime times port = 
+let send thinktime times ports = 
     async { 
         use context = new Context ()
         use channel = push context
 
-        sprintf "tcp://localhost:%i" port |> connect channel
+        ports |> List.iter (sprintf "tcp://localhost:%i" >> connect channel)
 
         let send t = 
             async {
-                sprintf "hello from port %i" port |> encode |> send channel
-                printfn "send(%i) %i finished" t port
+                sprintf "hello" |> encode |> send channel
+                printfn "send(%i) finished" t
             }
         do! 
             [1 .. times ] 
@@ -57,12 +57,13 @@ let send thinktime times port =
 
 //Sandbox zone
 
-//Proxy cluster
+//Proxy nodes on server A and B as P component
 pushPull 5571 5572 |> Async.Start
 pushPull 5573 5574 |> Async.Start
 
+//Receiver server C and D as R component (connected to P output)
 async { receive 1 [5572;5574] } |> Async.Start
 async { receive 2 [5572;5574] } |> Async.Start
 
-send 5000 20 5571 |> Async.Start
-send 3000 20 5573 |> Async.Start
+//Sender server E as S component (connected to P input)
+send 5000 20 [5571;5573] |> Async.Start
