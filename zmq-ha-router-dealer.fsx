@@ -20,11 +20,11 @@ type [<Measure>] ms
 type [<Struct>] ThinkTime = ThinkTime of float<s>
 let milliseconds = 1000.<ms/s>
 
-let client (ThinkTime thinktime) (Times times) (Identity dest) ports msg = 
+let client (ThinkTime thinktime) (Times times) (Identity identity) (Identity dest) ports msg = 
     async {
         use context = new Context ()
         use channel = dealer context
-        (ZMQ.IDENTITY, ("client")) |> setOption channel 
+        (ZMQ.IDENTITY, identity) |> setOption channel 
 
         ports |> List.iter (fun (Port port) -> sprintf "tcp://localhost:%i" port |> connect channel)
         do!
@@ -35,7 +35,7 @@ let client (ThinkTime thinktime) (Times times) (Identity dest) ports msg =
                     if thinktime > 0.<s> then 
                         do printfn "sleeping %i" t
                         do! milliseconds * thinktime |> int |> Async.Sleep
-                    do channel <~| encode dest <<| encode msg
+                    do channel <~| encode dest <<| encode (sprintf "(%i) %s" t msg)
                     printfn "client send %i" t }) (async.Return ())
     }
 
@@ -56,9 +56,9 @@ let server (Identity identity) ports =
 
 let router (Port port) = 
     let route channel = 
-        let _ = Socket.recv channel
-        let identity = Socket.recv channel
-        let client = channel <~| identity
+        let identity = Socket.recv channel |> decode
+        let dest = Socket.recv channel
+        let client = channel <~| dest
         use message = new Message ()
         Message.recv message channel
 
@@ -66,7 +66,7 @@ let router (Port port) =
             client <~| Message.data message
             |> ignore
             Message.recv message channel
-        printfn "routing message from router port %i" port
+        printfn "routing message from %s and router port %i" identity port
         client <<| Message.data message
     
     async {
@@ -81,13 +81,23 @@ let router (Port port) =
         
         handle () }
 
-let idt = Identity "pacman"
+let pacman = Identity "pacman"
+let donkey = Identity "donkey"
+let mario = Identity "mario"
+let luigi = Identity "luigi"
 
+//Router nodes on Server A and B as Component R
 Port 6666 |> router |> Async.Start
 Port 6667 |> router |> Async.Start
 
-server idt [Port 6666; Port 6667] |> Async.Start
+//Services on Server B and C as Component S (connected as R)
+server pacman [Port 6666; Port 6667] |> Async.Start
+server donkey [Port 6666; Port 6667] |> Async.Start
 
-let send ports = DateTime.UtcNow |> sprintf "%O hello" |> client (ThinkTime 3.<s>) (Times 20) idt ports
+let send idt dest ports = sprintf "%O hello from %A" DateTime.UtcNow idt |> client (ThinkTime 10.<s>) (Times 20) idt dest ports
 
-send [Port 6666; Port 6667] |> Async.Start
+//Client on Server D, E, F, G as Component C (connected as R)
+send mario pacman [Port 6666; Port 6667] |> Async.Start
+send mario donkey [Port 6666; Port 6667] |> Async.Start
+send luigi pacman [Port 6666; Port 6667] |> Async.Start
+send luigi donkey [Port 6666; Port 6667] |> Async.Start
