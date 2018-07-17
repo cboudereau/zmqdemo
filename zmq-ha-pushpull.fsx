@@ -10,7 +10,7 @@ let encode x = System.Text.Encoding.UTF8.GetBytes(x:string)
 
 let srecv = recv >> decode
 
-let pushPull inPort outPort = 
+let proxy inPort outPort = 
     async {
         use context = new Context ()
         use pullC = Context.pull context
@@ -58,8 +58,8 @@ let send thinktime times ports =
 //Sandbox zone
 
 //Proxy nodes on server A and B as P component
-pushPull 5571 5572 |> Async.Start
-pushPull 5573 5574 |> Async.Start
+proxy 5571 5572 |> Async.Start
+proxy 5573 5574 |> Async.Start
 
 //Receiver server C and D as R component (connected to P output)
 async { receive 1 [5572;5574] } |> Async.Start
