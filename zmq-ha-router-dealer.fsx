@@ -24,6 +24,7 @@ let client (ThinkTime thinktime) (Times times) (Identity identity) (Identity des
     async {
         use context = new Context ()
         use channel = dealer context
+        (ZMQ.IMMEDIATE, 1) |> Socket.setOption channel
         (ZMQ.IDENTITY, identity) |> setOption channel 
 
         ports |> List.iter (fun (Port port) -> sprintf "tcp://localhost:%i" port |> connect channel)
@@ -44,6 +45,7 @@ let server (Identity identity) ports =
         use context = new Context()
         use channel  = dealer context
 
+        (ZMQ.IMMEDIATE, 1) |> Socket.setOption channel
         (ZMQ.IDENTITY, (identity:string)) |> setOption channel 
         
         ports |> List.iter (fun (Port port) -> sprintf "tcp://localhost:%i" port |> connect channel)
@@ -94,7 +96,7 @@ Port 6667 |> router |> Async.Start
 server pacman [Port 6666; Port 6667] |> Async.Start
 server donkey [Port 6666; Port 6667] |> Async.Start
 
-let send idt dest ports = sprintf "%O hello from %A" DateTime.UtcNow idt |> client (ThinkTime 10.<s>) (Times 20) idt dest ports
+let send idt dest ports = sprintf "%O hello from %A" DateTime.UtcNow idt |> client (ThinkTime 3.<s>) (Times 20) idt dest ports
 
 //Client on Server D, E, F, G as Component C (connected as R)
 send mario pacman [Port 6666; Port 6667] |> Async.Start

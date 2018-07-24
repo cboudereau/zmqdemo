@@ -22,6 +22,7 @@ let milliseconds = 1000.<ms/s>
 
 let proxy (Port inPort) (Port outPort) = 
     async {
+        use d = { new System.IDisposable with member __.Dispose () = printfn "disposing proxy" }
         use context = new Context ()
         use pullC = Context.pull context
         use pushC = Context.push context
@@ -30,7 +31,7 @@ let proxy (Port inPort) (Port outPort) =
         inPort |> sprintf "tcp://*:%i" |> Socket.bind pullC 
         outPort |> sprintf "tcp://*:%i" |> Socket.bind pushC
 
-        fszmq.Proxying.proxy pushC pullC None          
+        do! async {fszmq.Proxying.proxy pushC pullC None}
     }
 
 let receive (Identity identity) ports = 
@@ -48,6 +49,7 @@ let send (ThinkTime thinktime) (Times times) ports =
     async { 
         use context = new Context ()
         use channel = push context
+        (ZMQ.IMMEDIATE, 1) |> Socket.setOption channel
 
         ports |> List.iter (fun (Port port) -> sprintf "tcp://localhost:%i" port |> connect channel)
 
@@ -64,13 +66,24 @@ let send (ThinkTime thinktime) (Times times) ports =
                     if thinktime > 0.<s> then do! milliseconds * thinktime |> int |> Async.Sleep
                     do! send t }) (async.Return ()) } 
 
+module Async = 
+    let start x = 
+        let token = new System.Threading.CancellationTokenSource ()
+        Async.Start(x, token.Token)
+        token
+
 //Proxy nodes on server A and B as P component
-proxy (Port 5571) (Port 5572) |> Async.Start
-proxy (Port 5573) (Port 5574) |> Async.Start
+let x = proxy (Port 5571) (Port 5572)
+let p1 = x |> Async.start
+
+p1.Cancel()
+p1.Dispose()
+
+//proxy (Port 5573) (Port 5574) |> Async.Start
 
 //Receiver server C and D as R component (connected to P output)
 async { receive (Identity "1") [Port 5572; Port 5574] } |> Async.Start
 async { receive (Identity "2") [Port 5572; Port 5574] } |> Async.Start
 
 //Sender server E as S component (connected to P input)
-send (ThinkTime 5.<s>) (Times 20) [Port 5571;Port 5573] |> Async.Start
+send (ThinkTime 3.<s>) (Times 20) [Port 5571;Port 5573] |> Async.Start
