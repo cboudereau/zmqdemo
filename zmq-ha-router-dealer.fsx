@@ -34,7 +34,7 @@ let client (ThinkTime thinktime) (Times times) (Identity identity) (Identity des
                 async {
                     do! s
                     if thinktime > 0.<s> then 
-                        do printfn "sleeping %i" t
+                        do printfn "%s is sleeping %i" identity t
                         do! milliseconds * thinktime |> int |> Async.Sleep
                     do channel <~| encode dest <<| encode (sprintf "(%i) %s" t msg)
                     printfn "client send %i" t }) (async.Return ())
@@ -56,7 +56,7 @@ let server (Identity identity) ports =
             handle ()
         handle () }
 
-let router (Port port) = 
+let router (Port port) (token:System.Threading.CancellationToken) = 
     let route channel = 
         let identity = Socket.recv channel |> decode
         let dest = Socket.recv channel
@@ -79,9 +79,15 @@ let router (Port port) =
         
         let rec handle () = 
             route channel
-            handle ()
-        
+            if token.IsCancellationRequested |> not then handle ()
+            else printfn "router %i terminated" port
         handle () }
+
+module Async = 
+    let start x = 
+        let token = new System.Threading.CancellationTokenSource ()
+        Async.Start(x token.Token, token.Token)
+        token
 
 let pacman = Identity "pacman"
 let donkey = Identity "donkey"
@@ -89,8 +95,8 @@ let mario = Identity "mario"
 let luigi = Identity "luigi"
 
 //Router nodes on Server A and B as Component R
-Port 6666 |> router |> Async.Start
-Port 6667 |> router |> Async.Start
+let r1 = Port 6666 |> router |> Async.start
+let r2 = Port 6667 |> router |> Async.start
 
 //Services on Server B and C as Component S (connected as R)
 server pacman [Port 6666; Port 6667] |> Async.Start
@@ -103,3 +109,6 @@ send mario pacman [Port 6666; Port 6667] |> Async.Start
 send mario donkey [Port 6666; Port 6667] |> Async.Start
 send luigi pacman [Port 6666; Port 6667] |> Async.Start
 send luigi donkey [Port 6666; Port 6667] |> Async.Start
+
+r1.Cancel()
+r2.Cancel()
