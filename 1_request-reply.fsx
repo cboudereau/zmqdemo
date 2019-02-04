@@ -18,5 +18,5 @@ let reply () =
     Socket.bind socket "tcp://*:5555"
     Socket.recv socket |> decode
 
-reply ()
 request "hello"
+reply ()
