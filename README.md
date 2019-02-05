@@ -15,7 +15,7 @@ It is the envelope delimiter, when there is no envelope, an empty frame is used 
 ## Patterns tradeoff
 
 - Async/Sync : block on send
-- Drop : discard messages when High water mark occurs. If it not drop message, a block operation occurs.
+- Drop : discard messages when High water mark occurs. If it not drop message, a block operation occurs. See [cheat sheet](http://zguide.zeromq.org/page:all#Missing-Message-Problem-Solver)
 - HWM : high water mark; define a limit to avoid queue memory leak.
 - Delivery : One (req/rep/router/dealer/push/pull) or all (pub/sub/xpub/xsub)
 - Uni/Multidirectional
