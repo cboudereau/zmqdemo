@@ -12,6 +12,8 @@ https://rfc.zeromq.org/spec:23/ZMTP/
 
 It is the envelope delimiter, when there is no envelope, an empty frame is used as "zero envelope".
 
+Link : http://zguide.zeromq.org/page:all#The-Extended-Reply-Envelope
+
 ## Patterns tradeoff
 
 - Async/Sync : block on send
