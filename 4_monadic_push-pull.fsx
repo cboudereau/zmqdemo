@@ -44,7 +44,7 @@ let spusher = pusher "tcp://*:5555" |> Disposable.map ((>>) String.encode)
 
 let spuller = puller "tcp://localhost:5555" |> Disposable.map ((<<) String.decode)
 
-let consolepuller = spuller |> Disposable.map ((<<) (printfn "console : %A"))
+let consolepuller = spuller |> Disposable.map ((<<) (printfn "console : %s"))
 
 Disposable.run spusher "hello"
 Disposable.run consolepuller ()

@@ -22,7 +22,7 @@ It is the envelope delimiter, when there is no envelope, an empty frame is used 
 
 ## Patterns Specs
 
-- [Req-Rep](https://rfc.zeromq.org/spec:28/REQREP/)
+- [Req-Rep/Router-Dealer](https://rfc.zeromq.org/spec:28/REQREP/)
 - [Pub-Sub](https://rfc.zeromq.org/spec:29/PUBSUB/)
 - [Pipeline/Push-Pull](http://rfc.zeromq.org/spec:30/PIPELINE)
 - [Exclusive Pair](https://rfc.zeromq.org/spec:31/EXPAIR/)
