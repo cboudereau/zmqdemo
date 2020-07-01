@@ -17,7 +17,7 @@ Link : http://zguide.zeromq.org/php:chapter3#The-Extended-Reply-Envelope
 ## Patterns tradeoff
 
 - Async/Sync : block on send
-- Drop : discard messages when High water mark occurs. If it not drop message, a block operation occurs. See [cheat sheet](http://zguide.zeromq.org/php:chapter2#Missing-Message-Problem-Solver)
+- Drop : discard messages when High water mark occurs. If it does not drop any messages, a block operation occurs. See [cheat sheet](http://zguide.zeromq.org/php:chapter2#Missing-Message-Problem-Solver)
 - HWM : high water mark; define a limit to avoid queue memory leak.
 - Delivery : One (req/rep/router/dealer/push/pull) or all (pub/sub/xpub/xsub)
 - Uni/Multidirectional
@@ -28,3 +28,4 @@ Link : http://zguide.zeromq.org/php:chapter3#The-Extended-Reply-Envelope
 - [Pub-Sub](https://rfc.zeromq.org/spec:29/PUBSUB/)
 - [Pipeline/Push-Pull](http://rfc.zeromq.org/spec:30/PIPELINE)
 - [Exclusive Pair](https://rfc.zeromq.org/spec:31/EXPAIR/)
+- [Invalid combinations](http://zguide.zeromq.org/php:chapter3#Invalid-Combinations)
