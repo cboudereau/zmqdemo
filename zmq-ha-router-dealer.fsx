@@ -34,10 +34,10 @@ let client (ThinkTime thinktime) (Times times) (Identity identity) (Identity des
                 async {
                     do! s
                     if thinktime > 0.<s> then 
-                        do printfn "%s is sleeping %i" identity t
+                        //do printfn "%s is sleeping %i" identity t
                         do! milliseconds * thinktime |> int |> Async.Sleep
                     do channel <~| encode dest <<| encode (sprintf "(%i) %s" t msg)
-                    printfn "client send %i" t }) (async.Return ())
+                    printfn "client sent %i" t }) (async.Return ())
     }
 
 let server (Identity identity) ports = 

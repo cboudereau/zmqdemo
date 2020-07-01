@@ -38,7 +38,7 @@ let worker i =
             async {
                 let rq = Socket.recv rep |> String.decode 
                 let resp = sprintf "[%i] Hello %s" i rq
-                do! Async.Sleep 200
+                do! Async.Sleep 500
                 resp |> String.encode |> Socket.send rep
                 printfn "worker %i replied : %s" i resp
                 do! reply () }
@@ -48,7 +48,7 @@ let worker i =
 broker |> Async.Start 
 [0 .. 1] |> List.map worker |> List.iter Async.Start
 
-#time
+#time "on"
 [1..10] |> List.map (sprintf "client %i" >> client) |> Async.Parallel |> Async.Ignore |> Async.RunSynchronously
 
 [2 .. 9] |> List.map worker |> List.iter Async.Start

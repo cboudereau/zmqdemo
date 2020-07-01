@@ -74,7 +74,6 @@ module Async =
 
 //Proxy nodes on server A and B as P component
 let p1 = proxy (Port 5571) (Port 5572) |> Async.start
-
 let p2 = proxy (Port 5573) (Port 5574) |> Async.start
 
 //Receiver server C and D as R component (connected to P output)
@@ -82,7 +81,8 @@ async { receive (Identity "1") [Port 5572; Port 5574] } |> Async.Start
 async { receive (Identity "2") [Port 5572; Port 5574] } |> Async.Start
 
 //Sender server E as S component (connected to P input)
-send (ThinkTime 0.2<s>) (Times 200) [Port 5571;Port 5573] |> Async.Start
+send (ThinkTime 0.5<s>) (Times 200) [Port 5571;Port 5573] |> Async.Start
+
 
 p1.Cancel()
 p2.Cancel()
