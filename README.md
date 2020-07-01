@@ -2,7 +2,7 @@
 
 ## Links
 
-### zeromq patterns protocol and valid combinaison
+### zeromq patterns protocol and valid combinations
 http://zguide.zeromq.org/page:all
 
 ### Spec
